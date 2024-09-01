@@ -4,9 +4,9 @@ import { EventEmitter } from "events";
 // AbortController became available as a global in node version 16. Once version
 // 14 reaches its end-of-life, this can be removed.
 import { AbortController as PolyfillAbortController } from "node-abort-controller";
+import type { RedisClientType, RedisClusterType } from "redis";
 
-import { Redis as IORedisClient, Cluster as IORedisCluster } from "ioredis";
-type Client = IORedisClient | IORedisCluster;
+type Client = RedisClientType | RedisClusterType;
 
 // Define script constants.
 const ACQUIRE_SCRIPT = `
@@ -558,10 +558,10 @@ export default class Redlock extends EventEmitter {
       let result: number;
       try {
         // Attempt to evaluate the script by its hash.
-        const shaResult = (await client.evalsha(script.hash, keys.length, [
-          ...keys,
-          ...args,
-        ])) as unknown;
+        const shaResult = (await client.evalSha(script.hash, {
+          keys,
+          arguments: args.map((arg) => arg.toString()),
+        })) as unknown;
 
         if (typeof shaResult !== "number") {
           throw new Error(
@@ -579,10 +579,10 @@ export default class Redlock extends EventEmitter {
         ) {
           throw error;
         }
-        const rawResult = (await client.eval(script.value, keys.length, [
-          ...keys,
-          ...args,
-        ])) as unknown;
+        const rawResult = (await client.eval(script.value, {
+          keys,
+          arguments: args.map((arg) => arg.toString()),
+        })) as unknown;
 
         if (typeof rawResult !== "number") {
           throw new Error(
