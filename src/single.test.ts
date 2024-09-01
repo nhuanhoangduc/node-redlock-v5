@@ -541,11 +541,5 @@ run("instance", createClient({ url: "redis://redis-single-instance" }));
 
 run(
   "cluster",
-  createCluster({
-    rootNodes: [
-      {
-        url: "redis://redis-single-cluster-1",
-      },
-    ],
-  })
+  createCluster({ rootNodes: [{ url: "redis://redis-single-cluster-1" }] })
 );
